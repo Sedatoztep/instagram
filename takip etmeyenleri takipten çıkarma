@@ -1,0 +1,69 @@
+#Created by sedat öztep.
+#Follow python.ogreniyorum on Instagram.
+
+
+from InstagramAPI import InstagramAPI
+
+USERNAME = input("Kullanıcı Adı: ")
+PASS = input("Şifre: ")
+
+
+def getTotalFollowers(api, user_id):
+
+    followers = []
+    next_max_id = True
+    while next_max_id:
+        if next_max_id is True:
+            next_max_id = ''
+
+        _ = api.getUserFollowers(user_id, maxid=next_max_id)
+        followers.extend(api.LastJson.get('users', []))
+        next_max_id = api.LastJson.get('next_max_id', '')
+    return followers
+
+def getTotalFollowings(api, user_id):
+    followers = []
+    next_max_id = True
+    while next_max_id:
+        if next_max_id is True:
+            next_max_id = ''
+
+        _ = api.getUserFollowings(user_id, maxid=next_max_id)
+        followers.extend(api.LastJson.get('users', []))
+        next_max_id = api.LastJson.get('next_max_id', '')
+    return followers
+
+
+def nonFollowers(followers, followings):
+    nonFollowers = {}
+    dictFollowers = {}
+    for follower in followers:
+        dictFollowers[follower['username']] = follower['pk']
+
+    for followedUser in followings:
+        if followedUser['username'] not in dictFollowers:
+            nonFollowers[followedUser['username']] = followedUser['pk']
+
+    return nonFollowers
+
+def unFollow(number: int):
+    api = InstagramAPI(USERNAME, PASS)
+    api.login()
+    user_id = api.username_id
+    followers = getTotalFollowers(api, user_id)
+    following = getTotalFollowings(api, user_id)
+    nonFollow = nonFollowers(followers, following)
+    totalNonFollowers = len(nonFollow)
+    print('Takipçi Sayısı:', len(followers))
+    print('Takip Ettiklerinin Sayısı:', len(following))
+    print('Seni Takip Etmiyenlerin Sayısı:', len(nonFollow))
+
+    for i in range(number):
+        if i >= totalNonFollowers:
+            break
+        user = list(nonFollow.keys())[len(nonFollow) - 1]
+        api.unfollow(nonFollow[user])
+        nonFollow.pop(user)
+
+if __name__ == "__main__":
+    unFollow(27)
